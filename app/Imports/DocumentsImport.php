@@ -3,9 +3,11 @@
 namespace App\Imports;
 
 use App\Models\Document;
+use App\Models\ExcelDocuments;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Carbon\Carbon;
 
 class DocumentsImport implements ToCollection, WithHeadingRow
 {
@@ -15,16 +17,30 @@ class DocumentsImport implements ToCollection, WithHeadingRow
     public function collection(Collection $rows)
     {
         foreach ($rows as $row) {
-            // Skip empty rows
-            if (!isset($row['file_name']) || empty($row['file_name'])) {
+
+            if (empty($row['usersid']) || empty($row['documentname'])) {
                 continue;
             }
 
-            Document::create([
-                'company_id'     => $row['company_id'] ?? null,   // optional
-                'directory_name' => $row['directory_name'] ?? 'default',
-                'file_name'      => $row['file_name'],
-                'file_path'      => $row['file_path'] ?? null,
+            $rawDate = trim($row['dateuploaded'] ?? '');
+
+            if (is_numeric($rawDate)) {
+                $uploadedDate = Carbon::createFromDate(1899, 12, 30)->addDays((int)$rawDate)->format('Y-m-d');
+            } else {
+                try {
+                    $uploadedDate = Carbon::parse($rawDate)->format('Y-m-d');
+                } catch (\Exception $e) {
+                    $uploadedDate = now()->format('Y-m-d');
+                }
+            }
+
+            
+            ExcelDocuments::create([
+                'user_id'           => $row['usersid'],
+                'search_field'      => $row['datasearchfield'] ?? null,
+                'document_name'     => $row['documentname'],
+                'document_directory'=> $row['documentdirectory'] ?? 'Unknown',
+                'uploaded_at' => $uploadedDate,
             ]);
         }
     }
