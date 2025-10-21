@@ -2,7 +2,11 @@
 
 @section('content')
 <div class="container">
-    <h2>Companies</h2>
+    <div class="card">
+        <div class="card-header">
+            <h4>Company List</h4>
+        </div>
+        <div class="card-body">
 
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
@@ -33,5 +37,7 @@
             @endforeach
         </tbody>
     </table>
+</div>
+</div>
 </div>
 @endsection

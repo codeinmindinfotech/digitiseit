@@ -2,7 +2,11 @@
 
 @section('content')
 <div class="container">
-    <h2>Edit Company</h2>
+    <div class="card">
+        <div class="card-header">
+            <h4>Edit Company</h4>
+        </div>
+        <div class="card-body">
 
     @if($errors->any())
         <div class="alert alert-danger">
@@ -24,5 +28,7 @@
         <button class="btn btn-primary">Update</button>
         <a href="{{ route('companies.index') }}" class="btn btn-secondary">Cancel</a>
     </form>
+</div>
+</div>
 </div>
 @endsection

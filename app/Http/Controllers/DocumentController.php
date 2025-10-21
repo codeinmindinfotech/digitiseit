@@ -11,6 +11,15 @@ use App\Models\ExcelDocuments;
 
 class DocumentController extends Controller
 {
+    public function mainIndex(Request $request)
+    {
+        $company_id = $request->get('company_id');
+        $documents = Document::when($company_id, fn($q) => $q->where('company_id', $company_id))
+        ->get();
+        $companies = Company::all();
+        return view('documents.list', compact('documents', 'companies'));
+    }
+
     public function index(Request $request)
     {
         $company_id = $request->get('company_id');
@@ -28,8 +37,6 @@ class DocumentController extends Controller
 
         return view('documents.index', compact('documentsGrouped', 'companies', 'company_id'));
     }
-
-
     public function uploadForm() {
         $companies = Company::all();
         return view('documents.upload', compact('companies'));

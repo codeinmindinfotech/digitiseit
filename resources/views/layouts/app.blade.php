@@ -35,8 +35,12 @@
                             href="{{ route('documents.uploadForm') }}">Upload Documents</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('documents.main.index') ? 'active' : '' }}" 
+                            href="{{ route('documents.main.index') }}">View Documents</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('documents.index') ? 'active' : '' }}" 
-                            href="{{ route('documents.index') }}">View Documents</a>
+                            href="{{ route('documents.index') }}">Client all Documents</a>
                         </li>
                     @endif
                 @endauth

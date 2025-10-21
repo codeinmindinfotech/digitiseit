@@ -2,7 +2,11 @@
 
 @section('content')
 <div class="container">
-    <h2>Upload Document</h2>
+    <div class="card">
+        <div class="card-header">
+            <h4>Upload Document</h4>
+        </div>
+        <div class="card-body">
 
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
@@ -41,9 +45,12 @@
         </div>
 
         <button class="btn btn-primary">Upload</button>
-        <a href="{{ route('documents.index') }}" class="btn btn-secondary">Back to List</a>
+        <a href="{{ route('documents.main.index') }}" class="btn btn-secondary">Back to List</a>
     </form>
 </div>
+    </div>
+</div>
+
 @endsection
 
 @section('scripts')

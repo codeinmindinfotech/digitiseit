@@ -21,8 +21,8 @@ Route::middleware(['auth'])->group(function() {
     Route::post('documents/upload', [DocumentController::class, 'upload'])->name('documents.upload');
 
     // Company-wise document view
+    Route::get('documents/list', [DocumentController::class, 'mainIndex'])->name('documents.main.index');
     Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');
 });
 Route::get('client/documents/{company_id}', [DocumentController::class, 'clientView'])->name('client.documents');
-
 Route::get('documents/view/{document}', [DocumentController::class, 'view'])->name('documents.view');

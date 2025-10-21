@@ -2,26 +2,32 @@
 
 @section('content')
 <div class="container">
-    <h2>Add Company</h2>
-
-    @if($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+    <div class="card">
+        <div class="card-header">
+            <h4>Add Company</h4>
         </div>
-    @endif
+        <div class="card-body">
 
-    <form method="POST" action="{{ route('companies.store') }}">
-        @csrf
-        <div class="mb-3">
-            <label>Company Name</label>
-            <input type="text" name="name" class="form-control" required>
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('companies.store') }}">
+                @csrf
+                <div class="mb-3">
+                    <label>Company Name</label>
+                    <input type="text" name="name" class="form-control" required>
+                </div>
+                <button class="btn btn-primary">Save</button>
+                <a href="{{ route('companies.index') }}" class="btn btn-secondary">Cancel</a>
+            </form>
         </div>
-        <button class="btn btn-primary">Save</button>
-        <a href="{{ route('companies.index') }}" class="btn btn-secondary">Cancel</a>
-    </form>
+    </div>        
 </div>
 @endsection
