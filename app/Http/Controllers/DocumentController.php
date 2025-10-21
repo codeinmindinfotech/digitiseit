@@ -23,57 +23,78 @@ class DocumentController extends Controller
         return view('documents.upload', compact('companies'));
     }
 
-    public function upload(Request $request) {
+    public function upload(Request $request)
+    {
         $request->validate([
-            'company_id' => 'nullable|string|max:255', // allow string for new company
+            'company_id' => 'nullable|string|max:255',
             'directory_name' => 'required|string|max:255',
-            'file' => 'required|file',
+            'files.*' => 'required|file', // allow multiple
         ]);
 
         $companyId = $request->company_id;
 
         if (!is_numeric($companyId) && !empty($companyId)) {
-            // Create new company
             $company = Company::create(['name' => $companyId]);
-            $companyId = $company->id; // now numeric ID
+            $companyId = $company->id;
         }
 
         $company = is_numeric($companyId) ? Company::find($companyId) : null;
         $dirName = $request->directory_name ?: ($company?->name ?? 'default');
 
-        $file = $request->file('file');
-        $fileName = $file->getClientOriginalName();
-        $dirPath = "uploads/{$dirName}";
+        foreach ($request->file('files') as $file) {
+            $fileName = $file->getClientOriginalName();
+            $extension = strtolower($file->getClientOriginalExtension());
+            $dirPath = "uploads/{$dirName}";
 
-        if (!Storage::disk('public')->exists($dirPath)) {
-            Storage::disk('public')->makeDirectory($dirPath);
+            if (!Storage::disk('public')->exists($dirPath)) {
+                Storage::disk('public')->makeDirectory($dirPath);
+            }
+
+            $filePath = $file->storeAs($dirPath, $fileName, 'public');
+
+            // First, create the Document record
+            $document = Document::create([
+                'company_id' => $company?->id,
+                'directory' => $dirName,
+                'filename' => $fileName,
+                'filepath' => $filePath,
+            ]);
+
+            // If Excel file, import its data and link to this document
+            if (in_array($extension, ['xls', 'xlsx'])) {
+                try {
+                    Excel::import(new DocumentsImport($document->id), $file);
+                } catch (\Exception $e) {
+                    \Log::error('Excel import failed: ' . $e->getMessage());
+                    continue;
+                }
+            }
         }
-        
-        $filePath = $file->storeAs($dirPath, $fileName, 'public');
 
-        // Optional: if Excel, import data
-        if (in_array($file->getClientOriginalExtension(), ['xls','xlsx'])) {
-            Excel::import(new DocumentsImport, $file);
-        }
-
-        Document::create([
-            'company_id' => $company?->id,
-            'directory' => $dirName,
-            'filename' => $fileName,
-            'filepath' => $filePath,
-        ]);
-
-        return redirect()->route('documents.index')->with('success','Document uploaded.');
+        return redirect()->route('documents.index')->with('success', 'Files uploaded successfully.');
     }
 
     public function clientView(Request $request) {
         $search = $request->get('search');
         $company_id = $request->get('company_id');
 
-        // Fetch documents with optional search & company filter
-        $documents = Document::when($company_id, fn($q) => $q->where('company_id', $company_id))
-            ->when($search, fn($q) => $q->where('filename', 'like', "%{$search}%"))
-            ->get();
+        $documents = Document::with('excelDocument')
+        ->when($company_id, fn($q) => $q->where('company_id', $company_id))
+        ->when($search, function ($q) use ($search) {
+            $q->where(function ($query) use ($search) {
+                $query->whereHas('excelDocument', function ($excel) use ($search) {
+                    $excel->where('search_field', 'like', "%{$search}%");
+                })
+                ->orWhereDoesntHave('excelDocument', function ($excel) use ($search) {
+                    // fallback to searching filename for documents without excel match
+                })
+                ->orWhere(function ($subQuery) use ($search) {
+                    $subQuery->doesntHave('excelDocument')
+                        ->where('filename', 'like', "%{$search}%");
+                });
+            });
+        })
+        ->get();
 
         // Fetch all companies for the filter dropdown
         $companies = Company::all();

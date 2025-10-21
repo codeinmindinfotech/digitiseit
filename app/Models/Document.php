@@ -13,4 +13,9 @@ class Document extends Model
     public function company() {
         return $this->belongsTo(Company::class);
     }
+
+    public function excelDocument()
+    {
+        return $this->hasOne(ExcelDocuments::class);
+    }
 }

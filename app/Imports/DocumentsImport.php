@@ -11,9 +11,12 @@ use Carbon\Carbon;
 
 class DocumentsImport implements ToCollection, WithHeadingRow
 {
-    /**
-     * @param Collection $rows
-     */
+    protected $documentId;
+
+    public function __construct($documentId)
+    {
+        $this->documentId = $documentId;
+    }
     public function collection(Collection $rows)
     {
         foreach ($rows as $row) {
@@ -37,6 +40,7 @@ class DocumentsImport implements ToCollection, WithHeadingRow
             
             ExcelDocuments::create([
                 'user_id'           => $row['usersid'],
+                'document_id'       => $this->documentId,
                 'search_field'      => $row['datasearchfield'] ?? null,
                 'document_name'     => $row['documentname'],
                 'document_directory'=> $row['documentdirectory'] ?? 'Unknown',
