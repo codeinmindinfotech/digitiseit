@@ -7,16 +7,28 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\DocumentsImport; // optional for Excel import
+use App\Models\ExcelDocuments;
 
 class DocumentController extends Controller
 {
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         $company_id = $request->get('company_id');
-        $documents = Document::when($company_id, fn($q) => $q->where('company_id', $company_id))
+        
+        // Get companies with document counts for each type (PDF, Excel, Word)
+        $companies = Company::withCount('documents')->get();
+
+        // Get all documents
+        $documents = Document::when($company_id, 
+        fn($q) => $q->where('company_id', $company_id))
             ->get();
-        $companies = Company::all();
-        return view('documents.index', compact('documents', 'companies'));
+
+        // Group documents by company and type
+        $documentsGrouped = $documents->groupBy('company_id');
+
+        return view('documents.index', compact('documentsGrouped', 'companies', 'company_id'));
     }
+
 
     public function uploadForm() {
         $companies = Company::all();
@@ -74,27 +86,27 @@ class DocumentController extends Controller
         return redirect()->route('documents.index')->with('success', 'Files uploaded successfully.');
     }
 
-    public function clientView(Request $request) {
+    public function clientView(Request $request, $company_id) {
         $search = $request->get('search');
-        $company_id = $request->get('company_id');
+        $company_id = base64_decode($company_id);
 
-        $documents = Document::with('excelDocument')
-        ->when($company_id, fn($q) => $q->where('company_id', $company_id))
-        ->when($search, function ($q) use ($search) {
-            $q->where(function ($query) use ($search) {
-                $query->whereHas('excelDocument', function ($excel) use ($search) {
-                    $excel->where('search_field', 'like', "%{$search}%");
-                })
-                ->orWhereDoesntHave('excelDocument', function ($excel) use ($search) {
-                    // fallback to searching filename for documents without excel match
-                })
-                ->orWhere(function ($subQuery) use ($search) {
-                    $subQuery->doesntHave('excelDocument')
-                        ->where('filename', 'like', "%{$search}%");
+        // If company_id is not provided or invalid, return 404
+        if (!$company_id || !Company::find($company_id)) {
+            abort(404, 'You do not have access to this page');
+        }
+
+        $documents = Document::when($company_id, fn($q) => $q->where('company_id', $company_id))
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($query) use ($search) {
+                    // Search excelDocument relation for search_field match
+                    $query->whereHas('excelDocument', function ($excel) use ($search) {
+                        $excel->where('search_field', 'like', "%{$search}%");
+                    })
+                    // OR fallback: search filename directly on Document model
+                    ->orWhere('filename', 'like', "%{$search}%");
                 });
-            });
-        })
-        ->get();
+            })
+            ->get();
 
         // Fetch all companies for the filter dropdown
         $companies = Company::all();

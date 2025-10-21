@@ -11,7 +11,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
         <!-- Logo -->
-        <a class="navbar-brand" href="{{ url('/') }}">
+        <a class="navbar-brand" href="{{ route('companies.index') }}">
             <img src="{{ asset('images/logo.jpg') }}" alt="DigitiseIt" style="height:40px;">
         </a>
 
@@ -43,8 +43,14 @@
 
                 {{-- Always visible --}}
                 <li class="nav-item">
-                    <a class="nav-link" target="_blanlk" href="{{ route('client.documents') }}">Client Documents</a>
+                    @if(Route::is('client.documents') && request()->route('company_id'))
+                        <a class="nav-link"
+                        href="{{ route('client.documents', ['company_id' => request()->route('company_id')]) }}">
+                            Client Documents
+                        </a>
+                    @endif
                 </li>
+
             </ul>
 
             <!-- Right Side -->

@@ -8,13 +8,19 @@
     <form method="GET" class="mb-4">
         <div class="row g-2 justify-content-center">
             <div class="col-md-6">
+                <input type="hidden" name="company_id" value="{{ request('company_id') }}">
+    
                 <input type="text" name="search" class="form-control" placeholder="Search documents..." value="{{ request('search') }}">
             </div>
             <div class="col-md-2">
                 <button type="submit" class="btn btn-primary w-100">Search</button>
             </div>
+            <div class="col-md-2">
+                <a href="{{ route('client.documents', ['company_id' => request('company_id')]) }}" class="btn btn-outline-secondary w-100">Reset</a>
+            </div>
         </div>
     </form>
+    
 
     <div class="row">
         {{-- Left sidebar: document list --}}
