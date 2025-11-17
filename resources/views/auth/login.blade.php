@@ -4,8 +4,12 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
+            
             <div class="card">
-                <div class="card-header">{{ __('Login') }}</div>
+                <div class="text-center mb-4">
+                    <img src="{{ asset('images/logo.jpg') }}" alt="Logo" style="width: 150px;">
+                </div>
+                <h3 class="card-header text-center">{{ __('Login') }}</h3>
 
                 <div class="card-body">
                     <form method="POST" action="{{ route('login') }}">
