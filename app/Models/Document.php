@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Document extends Model
 {
@@ -17,5 +18,17 @@ class Document extends Model
     public function excelDocument()
     {
         return $this->hasOne(ExcelDocuments::class);
+    }
+
+    // Local scopeuse Illuminate\Support\Facades\Auth;
+    public function scopeCompanyOnly($query)
+    {
+        // Only filter if the user has a company_id
+        if (Auth::check() && Auth::user()->company_id) {
+            return $query->where('company_id', Auth::user()->company_id);
+        }
+
+        // If no company_id, return all
+        return $query;
     }
 }

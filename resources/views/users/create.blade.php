@@ -4,7 +4,7 @@
 <div class="container">
     <div class="card">
         <div class="card-header">
-            <h4>Add Company</h4>
+            <h4>Add User</h4>
         </div>
         <div class="card-body">
 
@@ -18,25 +18,28 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('companies.store') }}">
+            <form method="POST" action="{{ route('users.store') }}">
                 @csrf
                 <div class="mb-3">
-                    <label>Company Name</label>
+                    <label>User Name</label>
                     <input type="text" name="name" class="form-control" required>
                 </div>
 
                 <div class="mb-3">
-                    <label>Company Email</label>
+                    <label>User Email</label>
                     <input type="email" name="email" class="form-control" required>
                 </div>
                 
                 <div class="mb-3">
-                    <label>Company Folder Path</label>
+                    <label>User Folder Path</label>
                     <input type="text" name="folder_path" class="form-control" required>
                 </div>
-                
+                <div class="mb-3">
+                    <label>Password</label>
+                    <input type="password" name="password" class="form-control"   required>
+                </div>
                 <button class="btn btn-primary">Save</button>
-                <a href="{{ route('companies.index') }}" class="btn btn-secondary">Cancel</a>
+                <a href="{{ route('users.index') }}" class="btn btn-secondary">Cancel</a>
             </form>
         </div>
     </div>        

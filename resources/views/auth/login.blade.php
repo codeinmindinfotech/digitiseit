@@ -14,7 +14,18 @@
                 <div class="card-body">
                     <form method="POST" action="{{ route('login') }}">
                         @csrf
-
+                        <div class="row mb-3">
+                            <label for="company" class="col-md-4 col-form-label text-md-end">Company</label>
+                            <div class="col-md-6">
+                                <select name="company_id" id="company" class="form-select">
+                                    <option value="">-- Select Company (Optional) --</option>
+                                    @foreach(\App\Models\Company::all() as $company)
+                                        <option value="{{ $company->id }}">{{ $company->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        
                         <div class="row mb-3">
                             <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('Email Address') }}</label>
 

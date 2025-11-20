@@ -3,6 +3,7 @@
 use App\Http\Controllers\ClientDocumentController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -15,6 +16,7 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 Route::middleware(['auth'])->group(function() {
     Route::resource('companies', CompanyController::class);
+    Route::resource('users', UserController::class);
 
     // Admin Document upload
     Route::get('documents/upload', [DocumentController::class, 'uploadForm'])->name('documents.uploadForm');

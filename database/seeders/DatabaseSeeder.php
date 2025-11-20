@@ -19,7 +19,8 @@ class DatabaseSeeder extends Seeder
             ['email' => 'clive.connolly@gmail.com'],
             [
                 'name' => 'Clive Connolly',
-                'password' => bcrypt('CL!V@23456')  // default password
+                'password' => bcrypt('CL!V@23456') , // default password
+                'company_id' => null, // important
             ]
         );
     }

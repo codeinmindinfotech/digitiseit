@@ -25,6 +25,14 @@
             <label>Company Name</label>
             <input type="text" name="name" class="form-control" value="{{ $company->name }}" required>
         </div>
+        <div class="mb-3">
+            <label>Company Email</label>
+            <input type="email" name="email" class="form-control"  value="{{ $company->email }}" required>
+        </div>
+        <div class="mb-3">
+            <label>Company Folder Path</label>
+            <input type="text" name="folder_path" class="form-control" value="{{ $company->folder_path }}"  required>
+        </div>
         <button class="btn btn-primary">Update</button>
         <a href="{{ route('companies.index') }}" class="btn btn-secondary">Cancel</a>
     </form>

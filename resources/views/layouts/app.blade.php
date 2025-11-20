@@ -27,7 +27,11 @@
                 <ul class="navbar-nav me-auto">
                     @auth
                         {{-- Admin Menu --}}
-                        @if(request()->routeIs('companies.*') || request()->is('documents*'))
+                        @if(request()->routeIs('companies.*') || request()->is('documents*') || request()->is('users*'))
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" 
+                                href="{{ route('users.index') }}">Users</a>
+                            </li>
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('companies.*') ? 'active' : '' }}" 
                                 href="{{ route('companies.index') }}">Companies</a>

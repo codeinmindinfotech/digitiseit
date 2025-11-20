@@ -29,6 +29,19 @@ class LoginController extends Controller
     {
         return route('documents.uploadForm');
     }    
+
+    protected function credentials(\Illuminate\Http\Request $request)
+    {
+        $credentials = $request->only($this->username(), 'password');
+
+        // Only add company_id if selected
+        if ($request->filled('company_id')) {
+            $credentials['company_id'] = $request->company_id;
+        }
+
+        return $credentials;
+    }
+
     //protected $redirectTo = '/home';
 
     /**

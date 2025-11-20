@@ -17,14 +17,20 @@
     <table class="table table-bordered">
         <thead>
             <tr>
+                <th>CompanyId</th>
                 <th>Name</th>
+                <th>Email</th>
+                <th>Folder Path</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             @foreach($companies as $company)
             <tr>
+                <td>{{ $company->id }}</td>
                 <td>{{ $company->name }}</td>
+                <td>{{ $company->email }}</td>
+                <td>{{ $company->folder_path }}</td>
                 <td>
                     <a href="{{ route('companies.edit', $company->id) }}" class="btn btn-sm btn-primary">Edit</a>
                     <form action="{{ route('companies.destroy', $company->id) }}" method="POST" style="display:inline-block;">

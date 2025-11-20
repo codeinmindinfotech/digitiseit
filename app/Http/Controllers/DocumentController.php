@@ -14,7 +14,7 @@ class DocumentController extends Controller
     public function mainIndex(Request $request)
     {
         $company_id = $request->get('company_id');
-        $documents = Document::when($company_id, fn($q) => $q->where('company_id', $company_id))
+        $documents = Document::companyOnly()->when($company_id, fn($q) => $q->where('company_id', $company_id))
         ->get();
         $companies = Company::all();
         return view('documents.list', compact('documents', 'companies'));
@@ -22,23 +22,21 @@ class DocumentController extends Controller
 
     public function index(Request $request)
     {
-        $company_id = $request->get('company_id');
+        // $company_id = $request->get('company_id');
         
         // Get companies with document counts for each type (PDF, Excel, Word)
-        $companies = Company::withCount('documents')->get();
+        $companies = Company::companyOnly()->withCount('documents')->get();
 
         // Get all documents
-        $documents = Document::when($company_id, 
-        fn($q) => $q->where('company_id', $company_id))
-            ->get();
+        $documents = Document::companyOnly()->get();
 
         // Group documents by company and type
         $documentsGrouped = $documents->groupBy('company_id');
 
-        return view('documents.index', compact('documentsGrouped', 'companies', 'company_id'));
+        return view('documents.index', compact('documentsGrouped', 'companies'));
     }
     public function uploadForm() {
-        $companies = Company::all();
+        $companies = Company::companyOnly()->get();
         return view('documents.upload', compact('companies'));
     }
 

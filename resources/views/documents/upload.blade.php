@@ -26,10 +26,10 @@
         @csrf
         <div class="mb-3">
             <label>Company</label>
-            <select name="company_id" id="company_id" class="select-2" required>
+            <select name="company_id" id="company_id" class="form-control select-2" required>
                 <option value="">-- Select Company --</option>
                 @foreach($companies as $company)
-                    <option value="{{ $company->id }}">{{ $company->name }}</option>
+                    <option value="{{ $company->id }}" data-folder-path="{{ $company->folder_path }}">{{ $company->name }}</option>
                 @endforeach
             </select>
         </div>
@@ -56,9 +56,6 @@
 @section('scripts')
 <script>
     $(function() {
-        console.log("jQuery version:", $.fn.jquery);
-        console.log("Select2 loaded?", $.fn.select2);
-    
         $('#company_id').select2({
             tags: true,
             placeholder: "-- Select or Add Company --",
@@ -66,12 +63,24 @@
         });
     
         $('#company_id').on('change', function() {
-            let selectedText = $("#company_id option:selected").text();
+            let selectedOption = $("#company_id option:selected");
+            let folderPath = selectedOption.data('folder-path') || selectedOption.text();
             let currentDir = $('#directory_name').val();
+
+            // Only set if input is empty
             if (currentDir === '') {
-                $('#directory_name').val(selectedText);
+                $('#directory_name').val(folderPath);
             }
         });
+
+
+        // $('#company_id').on('change', function() {
+        //     let selectedText = $("#company_id option:selected").text();
+        //     let currentDir = $('#directory_name').val();
+        //     if (currentDir === '') {
+        //         $('#directory_name').val(selectedText);
+        //     }
+        // });
     });
 </script>
 @endsection
