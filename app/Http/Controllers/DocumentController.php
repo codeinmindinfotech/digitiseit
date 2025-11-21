@@ -50,13 +50,13 @@ class DocumentController extends Controller
 
         $companyId = $request->company_id;
 
-        if (!is_numeric($companyId) && !empty($companyId)) {
-            $company = Company::create(['name' => $companyId]);
-            $companyId = $company->id;
-        }
+        // if (!is_numeric($companyId) && !empty($companyId)) {
+        //     $company = Company::create(['name' => $companyId]);
+        //     $companyId = $company->id;
+        // }
 
         $company = is_numeric($companyId) ? Company::find($companyId) : null;
-        $dirName = $request->directory_name ?: ($company?->name ?? 'default');
+        $dirName = rtrim($request->directory_name, '/') ?: ($company?->folder_path ?? 'default');
 
         foreach ($request->file('files') as $file) {
             $fileName = $file->getClientOriginalName();
@@ -91,31 +91,57 @@ class DocumentController extends Controller
         return redirect()->route('documents.index')->with('success', 'Files uploaded successfully.');
     }
 
-    public function clientView(Request $request, $company_id) {
+    public function clientView(Request $request)
+    {
         $search = $request->get('search');
-        $company_id = base64_decode($company_id);
+        $company_id = auth()->user()->company_id ?? null;
 
-        // If company_id is not provided or invalid, return 404
-        if (!$company_id || !Company::find($company_id)) {
-            abort(404, 'You do not have access to this page');
-        }
-
+        // Filter documents FIRST (important!)
         $documents = Document::when($company_id, fn($q) => $q->where('company_id', $company_id))
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($query) use ($search) {
-                    // Search excelDocument relation for search_field match
+
+                    // Search inside related excel document
                     $query->whereHas('excelDocument', function ($excel) use ($search) {
                         $excel->where('search_field', 'like', "%{$search}%");
                     })
-                    // OR fallback: search filename directly on Document model
+
+                    // OR search filename directly
                     ->orWhere('filename', 'like', "%{$search}%");
                 });
             })
             ->get();
 
-        // Fetch all companies for the filter dropdown
-        $companies = Company::all();
-        return view('client.documents', compact('documents','companies'));
+        // --- BUILD TREE ONLY FROM FILTERED DOCUMENTS ---
+        $tree = [];
+
+        foreach ($documents as $doc) {
+
+            // Convert filepath into folders
+            $parts = explode('/', $doc->filepath);
+
+            $ref = &$tree;
+
+            foreach ($parts as $i => $part) {
+
+                if ($i === count($parts) - 1) {
+                    // Last part = file
+                    $ref['__files'][] = [
+                        'name' => $part,
+                        'path' => $doc->filepath,
+                        'original_name' => $doc->filename, // helpful for display
+                    ];
+                } else {
+                    // Folder
+                    if (!isset($ref[$part])) {
+                        $ref[$part] = [];
+                    }
+                    $ref = &$ref[$part];
+                }
+            }
+        }
+
+        return view('client.documents', compact('tree', 'search'));
     }
 
     // DocumentController

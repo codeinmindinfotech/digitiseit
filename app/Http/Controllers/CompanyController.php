@@ -23,8 +23,15 @@ class CompanyController extends Controller
             'email' => 'required|email|unique:companies,email',
             'folder_path'=>'required|string|max:255',
         ]);
-        $company = Company::create($request->only('name', 'email', 'folder_path'));
-        // Optional: sync the default user
+        $data = $request->only('name', 'email', 'folder_path');
+
+        // Clean folder_path
+        if (!empty($data['folder_path'])) {
+            $data['folder_path'] = rtrim($data['folder_path'], "/\\");
+        }
+        
+        $company = Company::create($data);
+        
         $companyUser = User::where('company_id', $company->id)->first();
         if ($companyUser) {
             $companyUser->update([
@@ -53,7 +60,14 @@ class CompanyController extends Controller
             'email' => 'required|email|unique:companies,email,' . $company->id,
             'folder_path'=>'required|string|max:255',
         ]);
-        $company->update($request->all());
+        $data = $request->only('name', 'email', 'folder_path');
+
+        // Clean folder_path
+        if (!empty($data['folder_path'])) {
+            $data['folder_path'] = rtrim($data['folder_path'], "/\\");
+        }
+
+        $company->update($data);
         return redirect()->route('companies.index')->with('success', 'Company updated.');
     }
 

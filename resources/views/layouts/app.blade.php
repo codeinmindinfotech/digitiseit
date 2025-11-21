@@ -7,6 +7,8 @@
     <link rel="icon" href="{{ asset('images/favicon.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
+    @yield('styles')
+
 </head>
 <body>
     @if (!Route::is(['login']))
@@ -27,7 +29,7 @@
                 <ul class="navbar-nav me-auto">
                     @auth
                         {{-- Admin Menu --}}
-                        @if(request()->routeIs('companies.*') || request()->is('documents*') || request()->is('users*'))
+                        @if(request()->routeIs('companies.*') || request()->is('documents*') || request()->is('users*') || request()->routeIs('client.documents'))
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" 
                                 href="{{ route('users.index') }}">Users</a>
@@ -48,18 +50,16 @@
                                 <a class="nav-link {{ request()->routeIs('documents.index') ? 'active' : '' }}" 
                                 href="{{ route('documents.index') }}">Client all Documents</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('client.documents') ? 'active' : '' }}"
+                                href="{{ route('client.documents') }}">
+                                    Client Documents
+                                </a>
+                            </li>
                         @endif
                     @endauth
     
-                    {{-- Always visible --}}
-                    <li class="nav-item">
-                        @if(Route::is('client.documents') && request()->route('company_id'))
-                            <a class="nav-link"
-                            href="{{ route('client.documents', ['company_id' => request()->route('company_id')]) }}">
-                                Client Documents
-                            </a>
-                        @endif
-                    </li>
+                    
     
                 </ul>
     

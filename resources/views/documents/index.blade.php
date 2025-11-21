@@ -72,7 +72,7 @@
                         </td>
                         <td>{{ $docs->count() }}</td>
                         <td>
-                            <a href="{{ route('client.documents', ['company_id' => base64_encode($company->id)]) }}" class="btn btn-sm btn-info">
+                            <a href="{{ route('client.documents') }}" class="btn btn-sm btn-info">
                                 View Documents for {{ $company->name }}
                             </a>
                         </td>
