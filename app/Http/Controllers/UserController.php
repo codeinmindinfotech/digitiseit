@@ -13,8 +13,9 @@ class UserController extends Controller
     public function index() {
         
         $query = User::with('company');
+
         if (Auth::check() && Auth::user()->company_id) {
-            return $query->where('company_id', Auth::user()->company_id);
+            $query->where('company_id', Auth::user()->company_id);
         }
         $users = $query->get();
         return view('users.index', compact('users'));
