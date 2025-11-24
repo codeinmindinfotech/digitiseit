@@ -21,6 +21,7 @@
             </ul>
         </div>
     @endif
+    <p><strong>Note:</strong> If you upload using an Excel file, make sure all related PDF documents are placed inside the <code>public/allFiles</code> folder.</p>
 
     <form action="{{ route('documents.upload') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
         @csrf
