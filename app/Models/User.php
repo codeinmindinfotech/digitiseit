@@ -54,14 +54,14 @@ class User extends Authenticatable
     }
 
     // Local scope
-    public function scopeCompanyOnly($query)
-    {
-        // Only filter if the user has a company_id
-        if (Auth::check() && Auth::user()->company_id) {
-            return $query->where('company_id', Auth::user()->company_id);
-        }
+    // public function scopeCompanyOnly($query)
+    // {
+    //     // Only filter if the user has a company_id
+    //     if (Auth::check() && Auth::user()->company_id) {
+    //         return $query->where('company_id', Auth::user()->company_id);
+    //     }
 
-        // If no company_id, return all
-        return $query;
-    }
+    //     // If no company_id, return all
+    //     return $query;
+    // }
 }

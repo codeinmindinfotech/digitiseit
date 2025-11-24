@@ -21,7 +21,11 @@ Route::middleware(['auth'])->group(function() {
     // Admin Document upload
     Route::get('documents/upload', [DocumentController::class, 'uploadForm'])->name('documents.uploadForm');
     Route::post('documents/upload', [DocumentController::class, 'upload'])->name('documents.upload');
+    Route::get('documents/excelupload', [DocumentController::class, 'exceluploadForm'])->name('documents.exceluploadForm');
+    Route::post('documents/excelupload', [DocumentController::class, 'excelUpload'])->name('documents.excelupload');
 
+
+    
     // Company-wise document view
     Route::get('documents/list', [DocumentController::class, 'mainIndex'])->name('documents.main.index');
     Route::get('documents', [DocumentController::class, 'index'])->name('documents.index');

@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\DocumentsImport; // optional for Excel import
+use App\Imports\SimpleImport;
 use App\Models\ExcelDocuments;
+use App\Models\User;
 
 class DocumentController extends Controller
 {
@@ -35,6 +37,7 @@ class DocumentController extends Controller
 
         return view('documents.index', compact('documentsGrouped', 'companies'));
     }
+
     public function uploadForm() {
         $companies = Company::companyOnly()->get();
         return view('documents.upload', compact('companies'));
@@ -43,52 +46,109 @@ class DocumentController extends Controller
     public function upload(Request $request)
     {
         $request->validate([
-            'company_id' => 'nullable|string|max:255',
+            'company_id' => 'nullable|integer',
             'directory_name' => 'required|string|max:255',
-            'files.*' => 'required|file', // allow multiple
+            'files.*' => 'required|file', // allow multiple files
         ]);
 
         $companyId = $request->company_id;
-
-        // if (!is_numeric($companyId) && !empty($companyId)) {
-        //     $company = Company::create(['name' => $companyId]);
-        //     $companyId = $company->id;
-        // }
-
         $company = is_numeric($companyId) ? Company::find($companyId) : null;
         $dirName = rtrim($request->directory_name, '/') ?: ($company?->folder_path ?? 'default');
+
+        $sourceFolder = public_path('allFiles'); // Folder where PDFs exist
+        $disk = Storage::disk('public');
+        $overallLog = [];
 
         foreach ($request->file('files') as $file) {
             $fileName = $file->getClientOriginalName();
             $extension = strtolower($file->getClientOriginalExtension());
-            $dirPath = "uploads/{$dirName}";
 
-            if (!Storage::disk('public')->exists($dirPath)) {
-                Storage::disk('public')->makeDirectory($dirPath);
-            }
-
-            $filePath = $file->storeAs($dirPath, $fileName, 'public');
-
-            // First, create the Document record
-            $document = Document::create([
-                'company_id' => $company?->id,
-                'directory' => $dirName,
-                'filename' => $fileName,
-                'filepath' => $filePath,
-            ]);
-
-            // If Excel file, import its data and link to this document
+            // If Excel, process rows and copy PDFs based on company folder path
             if (in_array($extension, ['xls', 'xlsx'])) {
                 try {
-                    Excel::import(new DocumentsImport($document->id), $file);
+                    $allSheets = Excel::toCollection(new SimpleImport, $file);
+                    $log = ['uploaded' => [], 'missing' => []];
+
+                    foreach ($allSheets as $sheet) {
+                        foreach ($sheet as $row) {
+
+                            // Skip metadata rows if needed
+                            if (isset($row['usersid']) && $row['usersid'] === 'UsersID') continue;
+                    
+                            $userId  = $row['usersid'] ?? null;
+                            $pdfName = $row['documentname'] ?? null;
+                            $pdfDir  = $row['documentdirectory'] ?? null;
+                    
+                            if (empty($userId) || empty($pdfName) || empty($pdfDir)) continue;
+                            // Now you can process PDFs as before
+                        $user = is_numeric($userId) ? User::find($userId) : null;
+                        $companyId = $user->company_id;
+                        $company = is_numeric($companyId) ? Company::find($companyId) : null;
+                        $dirName = rtrim($request->directory_name, '/') ?: ($company?->folder_path ?? 'default');
+
+
+                        $sourcePdf = $sourceFolder . '/' . $pdfName;
+
+                        
+                        if (file_exists($sourcePdf)) {
+                            $targetDir = "uploads/{$company?->folder_path}/{$pdfDir}";
+                            if (!$disk->exists($targetDir)) {
+                                $disk->makeDirectory($targetDir);
+                            }
+                    
+                            $pdfPath = $targetDir . '/' . $pdfName;
+                            $disk->put($pdfPath, file_get_contents($sourcePdf));
+                    
+                            Document::create([
+                                'company_id' => $company?->id,
+                                'directory'  => $pdfDir,
+                                'filename'   => $pdfName,
+                                'filepath'   => $pdfPath,
+                            ]);
+                    
+                            $log['uploaded'][] = ['filename' => $pdfName, 'target' => $targetDir];
+                        } else {
+                            $log['missing'][] = ['filename' => $pdfName, 'directory' => $pdfDir];
+                        }
+                    }
+                }
+                    // Save log per Excel file
+                    // dd("111");
+                    $logDir = storage_path('logs'); // points to storage/logs
+                    if (!file_exists($logDir)) {
+                        mkdir($logDir, 0777, true); // create folder if it doesn't exist
+                    }
+
+                    $logFile = $logDir . '/upload_log_' . pathinfo($fileName, PATHINFO_FILENAME) . '.json';
+                    file_put_contents($logFile, json_encode($log, JSON_PRETTY_PRINT));
+                    $overallLog[$fileName] = $log;
+
                 } catch (\Exception $e) {
                     \Log::error('Excel import failed: ' . $e->getMessage());
-                    continue;
                 }
+
+            } else {
+                // Non-Excel files (PDFs, etc.) — use old code
+                $dirPath = "uploads/{$dirName}";
+                if (!$disk->exists($dirPath)) {
+                    $disk->makeDirectory($dirPath);
+                }
+
+                $filePath = $file->storeAs($dirPath, $fileName, 'public');
+
+                // Create document record
+                Document::create([
+                    'company_id' => $company?->id,
+                    'directory' => $dirName,
+                    'filename' => $fileName,
+                    'filepath' => $filePath,
+                ]);
             }
         }
 
-        return redirect()->route('documents.index')->with('success', 'Files uploaded successfully.');
+        return view('documents.upload-result', [
+            'overallLog' => $overallLog
+        ]);
     }
 
     public function clientView(Request $request)

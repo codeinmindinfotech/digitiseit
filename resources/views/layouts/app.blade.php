@@ -38,10 +38,31 @@
                                 <a class="nav-link {{ request()->routeIs('companies.*') ? 'active' : '' }}" 
                                 href="{{ route('companies.index') }}">Companies</a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle {{ request()->routeIs('documents.uploadForm', 'documents.exceluploadForm') ? 'active' : '' }}" 
+                                   href="#" id="uploadDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                   Uploads
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="uploadDropdown">
+                                    <li>
+                                        <a class="dropdown-item {{ request()->routeIs('documents.uploadForm') ? 'active' : '' }}" 
+                                           href="{{ route('documents.uploadForm') }}">
+                                           Upload Documents
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item {{ request()->routeIs('documents.exceluploadForm') ? 'active' : '' }}" 
+                                           href="{{ route('documents.exceluploadForm') }}">
+                                           Excel Upload Documents
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            
+                            {{-- <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('documents.uploadForm') ? 'active' : '' }}" 
                                 href="{{ route('documents.uploadForm') }}">Upload Documents</a>
-                            </li>
+                            </li> --}}
                             <li class="nav-item">
                                 <a class="nav-link {{ request()->routeIs('documents.main.index') ? 'active' : '' }}" 
                                 href="{{ route('documents.main.index') }}">View Documents</a>
