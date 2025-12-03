@@ -3,16 +3,21 @@
 @section('content')
 <div class="container">
     <div class="card">
-        <div class="card-header">
-            <h4>Users List</h4>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-table me-1"></i> User List Management
+            </div>
+            <div>
+                <a class="btn btn-sm btn-success" type="button" href="{{ route('users.create') }}">
+                    <i class="fas fa-filter me-1"></i> Add user
+                </a>
+            </div>
         </div>
         <div class="card-body">
 
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
-
-    <a href="{{ route('users.create') }}" class="btn btn-success mb-3">Add user</a>
 
     <table class="table table-bordered">
         <thead>
@@ -22,6 +27,7 @@
                 <th>Email</th>
                 <th>CompanyName</th>
                 <th>Folder Path</th>
+                <th>Role</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -33,6 +39,7 @@
                 <td>{{ $user->email }}</td>
                 <td>{{ $user->company?->name ?? ''}}</td>
                 <td>{{ $user->company?->folder_path??"-" }}</td>
+                <td>{{ $user->role?? '' }}</td>
                 <td>
                     <a href="{{ route('users.edit', $user->id) }}" class="btn btn-sm btn-primary">Edit</a>
                     <form action="{{ route('users.destroy', $user->id) }}" method="POST" style="display:inline-block;">

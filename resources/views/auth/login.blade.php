@@ -12,7 +12,17 @@
                 <h3 class="card-header text-center">{{ __('Login') }}</h3>
 
                 <div class="card-body">
-                    <form method="POST" action="{{ route('login') }}">
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('login') }}" novalidate>
                         @csrf
                         <div class="row mb-3">
                             <label for="company" class="col-md-4 col-form-label text-md-end">Company</label>

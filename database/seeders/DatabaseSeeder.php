@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Clive Connolly',
                 'password' => bcrypt('CL!V@23456') , // default password
                 'company_id' => null, // important
+                'role' => "admin"
             ]
         );
     }

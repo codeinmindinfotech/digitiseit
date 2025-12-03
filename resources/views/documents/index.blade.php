@@ -9,7 +9,7 @@
         <div class="card-body">
 
         {{-- Filter by Company --}}
-        <form method="GET" class="mb-3">
+        <form method="GET" class="mb-3" novalidate>
             <div class="row g-2">
                 <div class="col-md-6">
                     <select name="company_id" class="form-control">

@@ -12,7 +12,7 @@
     <div class="card mb-4">
         <div class="card-header">Upload Document</div>
         <div class="card-body">
-            <form action="{{ route('admin.docs.uploadDocs') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('admin.docs.uploadDocs') }}" method="POST" enctype="multipart/form-data" novalidate>
                 @csrf
                 <div class="mb-3">
                     <label>Company</label>
@@ -43,7 +43,7 @@
     <div class="card mb-4">
         <div class="card-header">Upload Excel</div>
         <div class="card-body">
-            <form action="{{ route('admin.docs.uploadExcel') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('admin.docs.uploadExcel') }}" method="POST" enctype="multipart/form-data" novalidate>
                 @csrf
                 <div class="mb-3">
                     <label>Company</label>

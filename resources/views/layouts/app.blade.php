@@ -8,7 +8,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
     @yield('styles')
-
+<style>
+    .txt-error{
+        color: red;
+    }
+</style>
 </head>
 <body>
     @if (!Route::is(['login']))
@@ -29,61 +33,56 @@
                 <ul class="navbar-nav me-auto">
                     @auth
                         {{-- Admin Menu --}}
-                        @if(request()->routeIs('companies.*') || request()->is('documents*') || request()->is('users*') || request()->routeIs('client.documents'))
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" 
-                                href="{{ route('users.index') }}">Users</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('companies.*') ? 'active' : '' }}" 
-                                href="{{ route('companies.index') }}">Companies</a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle {{ request()->routeIs('documents.uploadForm', 'documents.main.index', 'documents.index') ? 'active' : '' }}" 
-                                   href="#" id="uploadDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                   Documents
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="uploadDropdown">
-                                    <li>
-                                        <a class="dropdown-item {{ request()->routeIs('documents.uploadForm') ? 'active' : '' }}" 
-                                           href="{{ route('documents.uploadForm') }}">
-                                           Upload Documents
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item {{ request()->routeIs('documents.main.index') ? 'active' : '' }}" 
-                                           href="{{ route('documents.main.index') }}">
-                                           View Documents
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item {{ request()->routeIs('documents.index') ? 'active' : '' }}" 
-                                           href="{{ route('documents.index') }}">
-                                           Client all Documents
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                            
-                            {{-- <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('documents.uploadForm') ? 'active' : '' }}" 
-                                href="{{ route('documents.uploadForm') }}">Upload Documents</a>
-                            </li> --}}
-                            {{-- <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('documents.main.index') ? 'active' : '' }}" 
-                                href="{{ route('documents.main.index') }}">View Documents</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('documents.index') ? 'active' : '' }}" 
-                                href="{{ route('documents.index') }}">Client all Documents</a>
-                            </li> --}}
-                            <li class="nav-item">
-                                <a class="nav-link {{ request()->routeIs('client.documents') ? 'active' : '' }}"
-                                href="{{ route('client.documents') }}">
-                                    Client Documents
-                                </a>
-                            </li>
+                        @if(auth()->user()->hasRole('admin'))
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" 
+                                    href="{{ route('users.index') }}">Users</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->routeIs('companies.*') ? 'active' : '' }}" 
+                                    href="{{ route('companies.index') }}">Companies</a>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle {{ request()->routeIs('documents.uploadForm', 'documents.main.index', 'documents.index') ? 'active' : '' }}" 
+                                    href="#" id="uploadDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Documents
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="uploadDropdown">
+                                        <li>
+                                            <a class="dropdown-item {{ request()->routeIs('documents.uploadForm') ? 'active' : '' }}" 
+                                            href="{{ route('documents.uploadForm') }}">
+                                            Upload Documents
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item {{ request()->routeIs('documents.main.index') ? 'active' : '' }}" 
+                                            href="{{ route('documents.main.index') }}">
+                                            View Documents
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item {{ request()->routeIs('documents.index') ? 'active' : '' }}" 
+                                            href="{{ route('documents.index') }}">
+                                            Client all Documents
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->routeIs('client.documents') ? 'active' : '' }}"
+                                    href="{{ route('client.documents') }}">
+                                        Client Documents
+                                    </a>
+                                </li>
+                        @elseif(auth()->user()->hasRole('client'))
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->routeIs('client.documents') ? 'active' : '' }}"
+                                    href="{{ route('client.documents') }}">
+                                        Client Documents
+                                    </a>
+                                </li>
                         @endif
+    
                     @endauth
     
                     
@@ -129,6 +128,7 @@
 <!-- FIXED Select2 -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script>
+<script src="{{ asset('assets/scripts.js') }}"></script>
 
 @yield('scripts')
 

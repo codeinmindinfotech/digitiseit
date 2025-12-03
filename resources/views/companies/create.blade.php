@@ -3,8 +3,15 @@
 @section('content')
 <div class="container">
     <div class="card">
-        <div class="card-header">
-            <h4>Add Company</h4>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-table me-1"></i> Add Company
+            </div>
+            <div>
+                <a class="btn btn-sm btn-success" type="button" href="{{ route('companies.index') }}">
+                    <i class="fas fa-filter me-1"></i> Company List
+                </a>
+            </div>
         </div>
         <div class="card-body">
 
@@ -18,20 +25,15 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('companies.store') }}">
+            <form method="POST" action="{{ route('companies.store') }}" novalidate>
                 @csrf
                 <div class="mb-3">
-                    <label>Company Name</label>
+                    <label>Company Name <span class="txt-error">*</span></label>
                     <input type="text" name="name" class="form-control" required>
                 </div>
 
                 <div class="mb-3">
-                    <label>Company Email</label>
-                    <input type="email" name="email" class="form-control" required>
-                </div>
-                
-                <div class="mb-3">
-                    <label>Company Folder Path</label>
+                    <label>Company Folder Path <span class="txt-error">*</span></label>
                     <input type="text" name="folder_path" class="form-control" required>
                 </div>
                 

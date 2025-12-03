@@ -78,7 +78,7 @@ ul.list-group {
     <h2 class="mb-4 text-center">Client Documents</h2>
 
     {{-- Search --}}
-    <form method="GET" class="mb-4">
+    <form method="GET" class="mb-4" novalidate>
         <div class="row g-2 justify-content-center">
             <div class="col-md-6">
                 <input type="hidden" name="company_id" value="{{ request('company_id') }}">

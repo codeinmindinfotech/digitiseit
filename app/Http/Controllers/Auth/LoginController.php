@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
@@ -27,10 +29,32 @@ class LoginController extends Controller
      */
     protected function redirectTo()
     {
-        return route('documents.uploadForm');
+        $user = auth()->user();
+        if ($user->hasRole('client')) {
+            return route('client.documents'); // client dashboard
+        }
+    
+        if ($user->hasRole('admin')) {
+            return route('users.index'); // admin dashboard
+        }
     }    
 
-    protected function credentials(\Illuminate\Http\Request $request)
+    protected function validateLogin(Request $request)
+    {
+        $rules = [
+            $this->username() => 'required|string|email',
+            'password' => 'required|string',
+        ];
+        $user = User::where('email', $request->email)->first();
+        if ($user && $user->hasRole('client')) {
+            $rules['company_id'] = 'required|exists:companies,id';
+        }
+
+        $request->validate($rules);
+    }
+
+
+    protected function credentials(Request $request)
     {
         $credentials = $request->only($this->username(), 'password');
 

@@ -9,18 +9,12 @@ use Illuminate\Support\Facades\Auth;
 class Document extends Model
 {
     use HasFactory;
-    protected $fillable = ['company_id', 'directory', 'filename', 'filepath'];
+    protected $fillable = ['company_id', 'directory', 'filename', 'filepath','search_field','uploaded_at'];
 
     public function company() {
         return $this->belongsTo(Company::class);
     }
 
-    public function excelDocument()
-    {
-        return $this->hasOne(ExcelDocuments::class);
-    }
-
-    // Local scopeuse Illuminate\Support\Facades\Auth;
     public function scopeCompanyOnly($query)
     {
         // Only filter if the user has a company_id

@@ -21,15 +21,20 @@ class UserController extends Controller
         return view('users.index', compact('users'));
     }
 
-    public function create() { return view('users.create'); }
+    public function create() 
+    { 
+        $companies = Company::companyOnly()->get();
+        return view('users.create',compact('companies')); 
+    }
 
     public function store(Request $request)
     {
         $request->validate([
             'name'        => 'required|string|max:255',
             'email'       => 'required|email|unique:users,email',
-            'folder_path' => 'required|string|max:255',
+            'company_id' => 'required|integer|exists:companies,id',
             'password'    => 'required|string|max:255',
+            'role'        => 'required|in:admin,client',
         ]);
     
         $password = $request->password;
@@ -39,37 +44,37 @@ class UserController extends Controller
             'name'       => $request->name,
             'email'      => $request->email,
             'password'   => bcrypt($password),
-        ]);
-    
-        // Create company based on the user
-        $company = Company::create([
-            'name'        => $user->name,
-            'email'       => $user->email,
-            'folder_path' => $request->folder_path,
-        ]);
-    
-        // Link user to the company
-        $user->update([
-            'company_id' => $company->id,
+            'company_id' => $request->company_id,
+            'role' => $request->role,
         ]);
     
         return redirect()->route('users.index')->with('success', "User created. Default login password: $password");
     }
     
     
-    public function edit(User $user) { return view('users.edit', compact('user')); }
+    public function edit(User $user)
+    { 
+        $user = User::with('company')->find($user->id);
+        $companies = Company::companyOnly()->get();
+        return view('users.edit', compact('user','companies')); 
+    }
 
     public function update(Request $request, User $user)
     {
+        $Authuser = auth()->user();
+
         $request->validate([
             'name'        => 'required|string|max:255',
             'email'       => 'required|email|unique:users,email,' . $user->id,
-            'folder_path' => 'required|string|max:255',
+            'company_id'  => ($user->role === 'admin' && $user->id === $Authuser->id) 
+            ? 'nullable|integer|exists:companies,id'
+            : 'required|integer|exists:companies,id',
             'password'    => 'nullable|string|max:255', // allow empty to keep old password
+            'role'        => 'required|in:admin,client',
         ]);
     
         // Update user fields
-        $userData = $request->only('name', 'email');
+        $userData = $request->only('name', 'email','company_id','role');
     
         // Only update password if provided
         if ($request->filled('password')) {
@@ -77,18 +82,6 @@ class UserController extends Controller
         }
     
         $user->update($userData);
-    
-        // Update corresponding company if exists
-        if ($user->company_id) {
-            $company = Company::find($user->company_id);
-            if ($company) {
-                $company->update([
-                    'name'        => $user->name,
-                    'email'       => $user->email,
-                    'folder_path' => $request->folder_path,
-                ]);
-            }
-        }
     
         return redirect()->route('users.index')->with('success', 'User updated.');
     }

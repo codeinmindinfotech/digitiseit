@@ -3,8 +3,15 @@
 @section('content')
 <div class="container">
     <div class="card">
-        <div class="card-header">
-            <h4>Company List</h4>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-table me-1"></i>Company List
+            </div>
+            <div>
+                <a class="btn btn-sm btn-success" type="button" href="{{ route('companies.create') }}">
+                    <i class="fas fa-filter me-1"></i> Add Company 
+                </a>
+            </div>
         </div>
         <div class="card-body">
 
@@ -12,14 +19,11 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <a href="{{ route('companies.create') }}" class="btn btn-success mb-3">Add Company</a>
-
     <table class="table table-bordered">
         <thead>
             <tr>
                 <th>CompanyId</th>
                 <th>Name</th>
-                <th>Email</th>
                 <th>Folder Path</th>
                 <th>Actions</th>
             </tr>
@@ -29,7 +33,6 @@
             <tr>
                 <td>{{ $company->id }}</td>
                 <td>{{ $company->name }}</td>
-                <td>{{ $company->email }}</td>
                 <td>{{ $company->folder_path }}</td>
                 <td>
                     <a href="{{ route('companies.edit', $company->id) }}" class="btn btn-sm btn-primary">Edit</a>

@@ -22,7 +22,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'company_id'
+        'company_id',
+        'role'
     ];
 
     /**
@@ -53,6 +54,10 @@ class User extends Authenticatable
         return $this->belongsTo(Company::class);
     }
 
+    public function hasRole($role)
+    {
+        return $this->role === $role;
+    }
     // Local scope
     // public function scopeCompanyOnly($query)
     // {

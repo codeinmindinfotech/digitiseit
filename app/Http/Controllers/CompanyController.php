@@ -19,11 +19,10 @@ class CompanyController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'=>'required|string|max:255',
-            'email' => 'required|email|unique:companies,email',
+            'name' => 'required|string|max:255|unique:companies,name',
             'folder_path'=>'required|string|max:255',
         ]);
-        $data = $request->only('name', 'email', 'folder_path');
+        $data = $request->only('name', 'folder_path');
 
         // Clean folder_path
         if (!empty($data['folder_path'])) {
@@ -31,24 +30,8 @@ class CompanyController extends Controller
         }
         
         $company = Company::create($data);
-        
-        $companyUser = User::where('company_id', $company->id)->first();
-        if ($companyUser) {
-            $companyUser->update([
-                'name'  => $company->name,
-                'email' => $company->email,
-            ]);
-        }
-        $defaultPassword = Str::random(10);
 
-        $user = User::create([
-            'company_id' => $company->id,
-            'name'       => $company->name,
-            'email'      => $company->email,
-            'password'   => bcrypt($defaultPassword),
-        ]);
-
-        return redirect()->route('companies.index')->with('success', "Company created. Default login password: $defaultPassword");
+        return redirect()->route('companies.index')->with('success', "Company created");
 
     }
     
@@ -56,11 +39,10 @@ class CompanyController extends Controller
 
     public function update(Request $request, Company $company) {
         $request->validate([
-            'name'=>'required|string|max:255',
-            'email' => 'required|email|unique:companies,email,' . $company->id,
+            'name' => 'required|string|max:255|unique:companies,name,' . $company->id,
             'folder_path'=>'required|string|max:255',
         ]);
-        $data = $request->only('name', 'email', 'folder_path');
+        $data = $request->only('name', 'folder_path');
 
         // Clean folder_path
         if (!empty($data['folder_path'])) {

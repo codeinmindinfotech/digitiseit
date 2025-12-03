@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Document;
@@ -10,6 +11,7 @@ use App\Imports\DocumentsImport; // optional for Excel import
 use App\Imports\SimpleImport;
 use App\Models\ExcelDocuments;
 use App\Models\User;
+use Carbon\Carbon;
 
 class DocumentController extends Controller
 {
@@ -17,7 +19,7 @@ class DocumentController extends Controller
     {
         $company_id = $request->get('company_id');
         $documents = Document::companyOnly()->when($company_id, fn($q) => $q->where('company_id', $company_id))
-        ->get();
+            ->get();
         $companies = Company::all();
         return view('documents.list', compact('documents', 'companies'));
     }
@@ -25,7 +27,7 @@ class DocumentController extends Controller
     public function index(Request $request)
     {
         // $company_id = $request->get('company_id');
-        
+
         // Get companies with document counts for each type (PDF, Excel, Word)
         $companies = Company::companyOnly()->withCount('documents')->get();
 
@@ -38,7 +40,8 @@ class DocumentController extends Controller
         return view('documents.index', compact('documentsGrouped', 'companies'));
     }
 
-    public function uploadForm() {
+    public function uploadForm()
+    {
         $companies = Company::companyOnly()->get();
         return view('documents.upload', compact('companies'));
     }
@@ -74,44 +77,60 @@ class DocumentController extends Controller
 
                             // Skip metadata rows if needed
                             if (isset($row['usersid']) && $row['usersid'] === 'UsersID') continue;
-                    
+
                             $userId  = $row['usersid'] ?? null;
                             $pdfName = $row['documentname'] ?? null;
                             $pdfDir  = $row['documentdirectory'] ?? null;
-                    
+                            $searchField  = $row['datasearchfield'] ?? null;
+                            $rawDate = trim($row['DateUploaded'] ?? '');
+
+                            if (is_numeric($rawDate)) {
+                                $uploadedAt = Carbon::createFromDate(1899, 12, 30)->addDays((int)$rawDate)->format('Y-m-d');
+                            } else {
+                                try {
+                                    $uploadedAt = Carbon::parse($rawDate)->format('Y-m-d');
+                                } catch (\Exception $e) {
+                                    $uploadedAt = now()->format('Y-m-d');
+                                }
+                            }
+                            // \Log::error('Excel searchField: ' . $row);
+                            // \Log::error('Excel uploadedAt: ' . $uploadedAt);
+
                             if (empty($userId) || empty($pdfName) || empty($pdfDir)) continue;
                             // Now you can process PDFs as before
-                        $user = is_numeric($userId) ? User::find($userId) : null;
-                        $companyId = $user->company_id;
-                        $company = is_numeric($companyId) ? Company::find($companyId) : null;
-                        $dirName = rtrim($request->directory_name, '/') ?: ($company?->folder_path ?? 'default');
+                            // $user = is_numeric($userId) ? User::find($userId) : null;
+                            // $companyId = $user->company_id;
+                            $company = is_numeric($userId) ? Company::find($userId) : null;
+                            $dirName = rtrim($request->directory_name, '/') ?: ($company?->folder_path ?? 'default');
 
 
-                        $sourcePdf = $sourceFolder . '/' . $pdfName;
+                            $sourcePdf = $sourceFolder . '/' . $pdfName;
 
-                        
-                        if (file_exists($sourcePdf)) {
-                            $targetDir = "uploads/{$company?->folder_path}/{$pdfDir}";
-                            if (!$disk->exists($targetDir)) {
-                                $disk->makeDirectory($targetDir);
+
+                            if (file_exists($sourcePdf)) {
+                                $targetDir = "uploads/{$company?->folder_path}/{$pdfDir}";
+                                if (!$disk->exists($targetDir)) {
+                                    $disk->makeDirectory($targetDir);
+                                }
+
+                                $pdfPath = $targetDir . '/' . $pdfName;
+                                $disk->put($pdfPath, file_get_contents($sourcePdf));
+
+                                Document::create([
+                                    'company_id' => $company?->id,
+                                    'directory'  => $pdfDir,
+                                    'filename'   => $pdfName,
+                                    'filepath'   => $pdfPath,
+                                    'search_field' => $searchField,
+                                    'uploaded_at' => $uploadedAt
+                                ]);
+
+                                $log['uploaded'][] = ['filename' => $pdfName, 'target' => $targetDir];
+                            } else {
+                                $log['missing'][] = ['filename' => $pdfName, 'directory' => $pdfDir];
                             }
-                    
-                            $pdfPath = $targetDir . '/' . $pdfName;
-                            $disk->put($pdfPath, file_get_contents($sourcePdf));
-                    
-                            Document::create([
-                                'company_id' => $company?->id,
-                                'directory'  => $pdfDir,
-                                'filename'   => $pdfName,
-                                'filepath'   => $pdfPath,
-                            ]);
-                    
-                            $log['uploaded'][] = ['filename' => $pdfName, 'target' => $targetDir];
-                        } else {
-                            $log['missing'][] = ['filename' => $pdfName, 'directory' => $pdfDir];
                         }
                     }
-                }
                     // Save log per Excel file
                     // dd("111");
                     $logDir = storage_path('logs'); // points to storage/logs
@@ -122,11 +141,9 @@ class DocumentController extends Controller
                     $logFile = $logDir . '/upload_log_' . pathinfo($fileName, PATHINFO_FILENAME) . '.json';
                     file_put_contents($logFile, json_encode($log, JSON_PRETTY_PRINT));
                     $overallLog[$fileName] = $log;
-
                 } catch (\Exception $e) {
                     \Log::error('Excel import failed: ' . $e->getMessage());
                 }
-
             } else {
                 // Non-Excel files (PDFs, etc.) — use old code
                 $dirPath = "uploads/{$dirName}";
@@ -162,11 +179,10 @@ class DocumentController extends Controller
                 $q->where(function ($query) use ($search) {
 
                     // Search inside related excel document
-                    $query->whereHas('excelDocument', function ($excel) use ($search) {
-                        $excel->where('search_field', 'like', "%{$search}%");
-                    })
-
-                    // OR search filename directly
+                    // $query->whereHas('excelDocument', function ($excel) use ($search) {
+                    //     $excel->where('search_field', 'like', "%{$search}%");
+                    // })
+                    $query->where('search_field', 'like', "%{$search}%")
                     ->orWhere('filename', 'like', "%{$search}%");
                 });
             })
@@ -214,7 +230,7 @@ class DocumentController extends Controller
             abort(404);
         }
 
-        $inlineTypes = ['pdf','jpg','jpeg','png','gif','bmp'];
+        $inlineTypes = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp'];
         $headers = [];
 
         if (in_array(strtolower($ext), $inlineTypes)) {
@@ -223,5 +239,4 @@ class DocumentController extends Controller
 
         return response()->file($path, $headers);
     }
-
 }
