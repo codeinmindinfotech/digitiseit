@@ -182,6 +182,7 @@ class DocumentController extends Controller
                     ->orWhere('filename', 'like', "%{$search}%");
                 });
             })
+            ->orderBy('created_at', 'desc')
             ->get();
 
         // --- BUILD TREE ONLY FROM FILTERED DOCUMENTS ---
