@@ -38,7 +38,8 @@
                                                 {{ $file['filename'] }}
                                                 @if(isset($file['directory']))
                                                     (expected in: {{ $file['directory'] }})
-                                                @elseif(isset($file['reason']))
+                                                @endif
+                                                @if(isset($file['reason']))
                                                     - {{ $file['reason'] }}
                                                 @endif
                                             </li>

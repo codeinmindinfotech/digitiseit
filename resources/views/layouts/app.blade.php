@@ -7,6 +7,8 @@
     <link rel="icon" href="{{ asset('images/favicon.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
     @yield('styles')
 <style>
     .txt-error{
@@ -54,12 +56,12 @@
                                             Upload Documents
                                             </a>
                                         </li>
-                                        <li>
+                                        {{-- <li>
                                             <a class="dropdown-item {{ request()->routeIs('documents.main.index') ? 'active' : '' }}" 
                                             href="{{ route('documents.main.index') }}">
                                             View Documents
                                             </a>
-                                        </li>
+                                        </li> --}}
                                         <li>
                                             <a class="dropdown-item {{ request()->routeIs('documents.index') ? 'active' : '' }}" 
                                             href="{{ route('documents.index') }}">
@@ -124,6 +126,7 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
 <!-- FIXED Select2 -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />

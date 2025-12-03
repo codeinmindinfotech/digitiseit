@@ -8,9 +8,9 @@
                 <i class="fas fa-table me-1"></i> Upload Document
             </div>
             <div>
-                {{-- <a class="btn btn-sm btn-success" type="button" href="{{ route('users.index') }}">
-                    <i class="fas fa-filter me-1"></i> User List
-                </a> --}}
+                <a class="btn btn-sm btn-success" type="button" href="{{ route('documents.main.index') }}">
+                    <i class="fas fa-filter me-1"></i> Document List
+                </a>
             </div>
         </div>
         <div class="card-body">

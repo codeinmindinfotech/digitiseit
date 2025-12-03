@@ -19,6 +19,7 @@ class DocumentController extends Controller
     {
         $company_id = $request->get('company_id');
         $documents = Document::companyOnly()->when($company_id, fn($q) => $q->where('company_id', $company_id))
+            ->orderBy('created_at', 'desc')
             ->get();
         $companies = Company::all();
         return view('documents.list', compact('documents', 'companies'));
@@ -101,6 +102,16 @@ class DocumentController extends Controller
                             // $user = is_numeric($userId) ? User::find($userId) : null;
                             // $companyId = $user->company_id;
                             $company = is_numeric($userId) ? Company::find($userId) : null;
+                            if (!$company) {
+                                // Company not found, log as missing
+                                $log['missing'][] = [
+                                    'filename' => $pdfName,
+                                    'directory' => $pdfDir,
+                                    'user_id' => $userId,
+                                    'reason' => 'Company not found - '.$userId
+                                ];
+                                continue; // skip processing this row
+                            }
                             $dirName = rtrim($request->directory_name, '/') ?: ($company?->folder_path ?? 'default');
 
 
@@ -127,7 +138,7 @@ class DocumentController extends Controller
 
                                 $log['uploaded'][] = ['filename' => $pdfName, 'target' => $targetDir];
                             } else {
-                                $log['missing'][] = ['filename' => $pdfName, 'directory' => $pdfDir];
+                                $log['missing'][] = ['filename' => $pdfName, 'directory' => $pdfDir, 'reason' => 'File not Found - '.$sourcePdf];
                             }
                         }
                     }
@@ -236,4 +247,22 @@ class DocumentController extends Controller
 
         return response()->file($path, $headers);
     }
+
+    public function destroy(Document $document)
+    {
+        try {
+            // 1️⃣ Delete file from storage
+            if ($document->filepath && Storage::disk('public')->exists($document->filepath)) {
+                Storage::disk('public')->delete($document->filepath);
+            }
+
+            // 2️⃣ Delete record from database
+            $document->delete();
+
+            return redirect()->back()->with('success', 'Document deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to delete document: ' . $e->getMessage());
+        }
+    }
+
 }
