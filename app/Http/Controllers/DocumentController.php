@@ -178,11 +178,7 @@ class DocumentController extends Controller
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($query) use ($search) {
 
-                    // Search inside related excel document
-                    // $query->whereHas('excelDocument', function ($excel) use ($search) {
-                    //     $excel->where('search_field', 'like', "%{$search}%");
-                    // })
-                    $query->where('search_field', 'like', "%{$search}%")
+                $query->where('search_field', 'like', "%{$search}%")
                     ->orWhere('filename', 'like', "%{$search}%");
                 });
             })

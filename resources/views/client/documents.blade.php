@@ -110,7 +110,12 @@ ul.list-group {
         {{-- Right panel: preview --}}
         <div class="col-md-8">
             <div class="card h-100">
-                <div class="card-header bg-secondary text-white">Preview</div>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Preview</span>
+                    <div id="preview-actions" class="d-flex gap-2">
+                        <!-- Download & Print buttons will be injected here -->
+                    </div>
+                </div>
                 <div class="card-body p-0" id="document-preview" style="height: 600px;">
                     <p class="text-center mt-5 text-muted">Select a document to preview</p>
                 </div>
@@ -140,24 +145,74 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.add('selected');
 
             const filePath = this.dataset.file;
+            const fileName = filePath.split('/').pop();
             const ext = filePath.split('.').pop().toLowerCase();
-            let content = '';
+            const preview = document.getElementById('document-preview');
+            const actionsContainer = document.getElementById('preview-actions');
 
+            // Clear previous content and actions
+            preview.innerHTML = '';
+            actionsContainer.innerHTML = '';
+
+            // Add Download button
+            const downloadBtn = document.createElement('a');
+            downloadBtn.href = filePath;
+            downloadBtn.download = fileName;
+            downloadBtn.className = 'btn btn-sm btn-success';
+            downloadBtn.textContent = 'Download';
+
+            // Add Print button
+            const printBtn = document.createElement('button');
+            printBtn.className = 'btn btn-sm btn-warning';
+            printBtn.textContent = 'Print';
+            printBtn.addEventListener('click', () => {
+                const win = window.open(filePath, '_blank');
+                win.focus();
+                win.print();
+            });
+
+            actionsContainer.appendChild(downloadBtn);
+            actionsContainer.appendChild(printBtn);
+
+            // Display preview
             if (ext === 'pdf') {
-                content = `<iframe src="${filePath}" style="width:100%;height:100%;"></iframe>`;
+                preview.innerHTML = `<iframe src="${filePath}" style="width:100%;height:100%;"></iframe>`;
             } else if (['jpg','jpeg','png','gif'].includes(ext)) {
-                content = `<img src="${filePath}" class="img-fluid mx-auto d-block" style="max-height:100%;">`;
+                preview.innerHTML = `<img src="${filePath}" class="img-fluid mx-auto d-block" style="max-height:100%;">`;
             } else if (['doc','docx','xls','xlsx','ppt','pptx'].includes(ext)) {
-                content = `<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(filePath)}"
-                            style="width:100%;height:100%;"></iframe>`;
+                preview.innerHTML = `<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(filePath)}"
+                                        style="width:100%;height:100%;"></iframe>`;
             } else {
-                content = `<p class="text-center mt-5">Preview not available.
-                            <br><a href="${filePath}" target="_blank" class="btn btn-primary btn-sm mt-3">Download</a></p>`;
+                preview.innerHTML = `<p class="text-center mt-5">Preview not available.</p>`;
             }
-
-            preview.innerHTML = content;
         });
     });
+
+
+    // document.querySelectorAll('.file-item').forEach(file => {
+    //     file.addEventListener('click', function() {
+    //         document.querySelectorAll('.file-item').forEach(f => f.classList.remove('selected'));
+    //         this.classList.add('selected');
+
+    //         const filePath = this.dataset.file;
+    //         const ext = filePath.split('.').pop().toLowerCase();
+    //         let content = '';
+
+    //         if (ext === 'pdf') {
+    //             content = `<iframe src="${filePath}" style="width:100%;height:100%;"></iframe>`;
+    //         } else if (['jpg','jpeg','png','gif'].includes(ext)) {
+    //             content = `<img src="${filePath}" class="img-fluid mx-auto d-block" style="max-height:100%;">`;
+    //         } else if (['doc','docx','xls','xlsx','ppt','pptx'].includes(ext)) {
+    //             content = `<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(filePath)}"
+    //                         style="width:100%;height:100%;"></iframe>`;
+    //         } else {
+    //             content = `<p class="text-center mt-5">Preview not available.
+    //                         <br><a href="${filePath}" target="_blank" class="btn btn-primary btn-sm mt-3">Download</a></p>`;
+    //         }
+
+    //         preview.innerHTML = content;
+    //     });
+    // });
 });
 
 
