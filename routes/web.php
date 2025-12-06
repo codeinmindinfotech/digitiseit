@@ -44,3 +44,7 @@ Route::middleware('auth')->group(function() {
 // Client login routes (no guard needed)
 Route::get('/login', [ClientLoginController::class, 'showLoginForm'])->name('auth.login');
 Route::post('/login', [ClientLoginController::class, 'login'])->name('auth.loginPost');
+
+Route::get('/', function () {
+    return redirect()->route('auth.login');
+});
