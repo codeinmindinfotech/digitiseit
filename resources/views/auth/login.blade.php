@@ -4,14 +4,19 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            
+
             <div class="card">
-                <div class="text-center mb-4">
-                    <img src="{{ asset('images/logo.jpg') }}" alt="Logo" style="width: 150px;">
+                
+                <!-- Logo -->
+                <div class="text-center mt-4">
+                    <img src="{{ asset('images/logo.jpg') }}" alt="Logo" style="width:150px;">
                 </div>
-                <h3 class="card-header text-center">{{ __('Login') }}</h3>
+
+                <h3 class="card-header text-center">Login</h3>
 
                 <div class="card-body">
+
+                    {{-- Show Errors --}}
                     @if ($errors->any())
                         <div class="alert alert-danger">
                             <ul class="mb-0">
@@ -22,77 +27,92 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('login') }}" novalidate>
+                    {{-- Code Sent Notice --}}
+                    @if(session('code_sent'))
+                        <div class="alert alert-success">
+                            Verification code sent to {{ session('email') }}. Please enter below.
+                        </div>
+                    @endif
+
+                    {{-- LOGIN FORM --}}
+                    <form method="POST" action="{{ route('auth.loginPost') }}" novalidate>
                         @csrf
+
+                        <!-- Company (Client Only) -->
                         <div class="row mb-3">
-                            <label for="company" class="col-md-4 col-form-label text-md-end">Company</label>
+                            <label for="company" class="col-md-4 col-form-label text-md-end">Company :</label>
                             <div class="col-md-6">
                                 <select name="company_id" id="company" class="form-select">
-                                    <option value="">-- Select Company (Optional) --</option>
+                                    <option value="">-- Select Company --</option>
                                     @foreach(\App\Models\Company::all() as $company)
-                                        <option value="{{ $company->id }}">{{ $company->name }}</option>
+                                        <option value="{{ $company->id }}" 
+                                            {{ old('company_id', session('company_id')) == $company->id ? 'selected' : '' }}>
+                                            {{ $company->name }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
-                        
+
+                        <!-- Email -->
                         <div class="row mb-3">
-                            <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('Email Address') }}</label>
-
+                            <label for="email" class="col-md-4 col-form-label text-md-end">Email Address</label>
                             <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
-
+                                <input id="email" type="email"
+                                       class="form-control @error('email') is-invalid @enderror"
+                                       name="email" value="{{ old('email', session('email')) }}"
+                                       required autocomplete="email">
                                 @error('email')
-                                    <span class="invalid-feedback" role="alert">
+                                    <span class="invalid-feedback">
                                         <strong>{{ $message }}</strong>
                                     </span>
                                 @enderror
                             </div>
                         </div>
 
-                        <div class="row mb-3">
-                            <label for="password" class="col-md-4 col-form-label text-md-end">{{ __('Password') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
-
-                                @error('password')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6 offset-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-
-                                    <label class="form-check-label" for="remember">
-                                        {{ __('Remember Me') }}
-                                    </label>
+                        <!-- Verification Code (Client Only, shows if code sent) -->
+                        @if(session('code_sent'))
+                            <div class="row mb-3">
+                                <label for="code" class="col-md-4 col-form-label text-md-end">Verification Code</label>
+                                <div class="col-md-6">
+                                    <input type="text" name="code" class="form-control" required>
+                                    @error('code')
+                                        <span class="invalid-feedback d-block">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
                                 </div>
                             </div>
-                        </div>
+                        @endif
 
+                        <!-- Submit -->
                         <div class="row mb-0">
                             <div class="col-md-8 offset-md-4">
                                 <button type="submit" class="btn btn-primary">
-                                    {{ __('Login') }}
+                                    {{ session('code_sent') ? 'Verify & Login' : 'Login' }}
                                 </button>
 
-                                @if (Route::has('password.request'))
-                                    <a class="btn btn-link" href="{{ route('password.request') }}">
-                                        {{ __('Forgot Your Password?') }}
-                                    </a>
-                                @endif
                             </div>
                         </div>
+
                     </form>
+
                 </div>
             </div>
+
         </div>
     </div>
 </div>
+
+{{-- JavaScript for Dynamic UI Logic --}}
+<script>
+document.getElementById('company').addEventListener('change', function () {
+    const isClient = this.value !== ""; // company selected => client login
+    document.getElementById('password-row').style.display = isClient ? 'none' : 'flex';
+    document.getElementById('remember-row').style.display = isClient ? 'none' : 'flex';
+    document.getElementById('forgot-link').style.display = isClient ? 'none' : 'inline';
+    document.getElementById('password').disabled = isClient;
+});
+</script>
+
 @endsection

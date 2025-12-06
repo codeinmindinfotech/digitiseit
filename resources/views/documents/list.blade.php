@@ -83,12 +83,12 @@ $(document).ready(function() {
     });
 
     // Company filter
-    $('#companyFilter').change(function() {
-        var val = $(this).val();
-        table.column(3).search(val ? '^' + val + '$' : '', true, false).draw();
-    });
+    // $('#companyFilter').change(function() {
+    //     var val = $(this).val();
+    //     table.column(3).search(val ? '^' + val + '$' : '', true, false).draw();
+    // });
 
-    $('.select-2').select2({ width: '100%' });
+    // $('.select-2').select2({ width: '100%' });
 });
 </script>
 @endsection

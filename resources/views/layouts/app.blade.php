@@ -34,7 +34,6 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     @auth
-                        {{-- Admin Menu --}}
                         @if(auth()->user()->hasRole('admin'))
                                 <li class="nav-item">
                                     <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" 
@@ -44,36 +43,10 @@
                                     <a class="nav-link {{ request()->routeIs('companies.*') ? 'active' : '' }}" 
                                     href="{{ route('companies.index') }}">Companies</a>
                                 </li>
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle {{ request()->routeIs('documents.uploadForm', 'documents.main.index', 'documents.index') ? 'active' : '' }}" 
-                                    href="#" id="uploadDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Documents
-                                    </a>
-                                    <ul class="dropdown-menu" aria-labelledby="uploadDropdown">
-                                        <li>
-                                            <a class="dropdown-item {{ request()->routeIs('documents.uploadForm') ? 'active' : '' }}" 
-                                            href="{{ route('documents.uploadForm') }}">
-                                            Upload Documents
-                                            </a>
-                                        </li>
-                                        {{-- <li>
-                                            <a class="dropdown-item {{ request()->routeIs('documents.main.index') ? 'active' : '' }}" 
-                                            href="{{ route('documents.main.index') }}">
-                                            View Documents
-                                            </a>
-                                        </li> --}}
-                                        <li>
-                                            <a class="dropdown-item {{ request()->routeIs('documents.index') ? 'active' : '' }}" 
-                                            href="{{ route('documents.index') }}">
-                                            Client all Documents
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </li>
                                 <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('client.documents') ? 'active' : '' }}"
-                                    href="{{ route('client.documents') }}">
-                                        Client Documents
+                                    <a class="nav-link {{ request()->routeIs('documents.uploadForm') ? 'active' : '' }}" 
+                                    href="{{ route('documents.uploadForm') }}">
+                                    Upload Documents
                                     </a>
                                 </li>
                         @elseif(auth()->user()->hasRole('client'))
@@ -94,6 +67,7 @@
                 <!-- Right Side -->
                 <ul class="navbar-nav ms-auto">
                     @auth
+                        @if(auth()->user()->hasRole('client'))
                         <!-- User Dropdown -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
@@ -102,7 +76,7 @@
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li>
                                     <a class="dropdown-item" href="{{ route('logout') }}"
-                                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                         Logout
                                     </a>
                                     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
@@ -111,6 +85,27 @@
                                 </li>
                             </ul>
                         </li>
+                        @endif
+
+                        @if(auth()->user()->hasRole('admin'))
+                            <!-- User Dropdown -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                    {{ auth()->user()->name }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('admin.logout') }}"
+                                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                            Logout
+                                        </a>
+                                        <form id="logout-form" action="{{ route('admin.logout') }}" method="POST" class="d-none">
+                                            @csrf
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endif                       
                     @endauth
                 </ul>
             </div>
