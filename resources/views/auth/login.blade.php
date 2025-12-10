@@ -40,19 +40,18 @@
 
                         <!-- Company (Client Only) -->
                         <div class="row mb-3">
-                            <label for="company" class="col-md-4 col-form-label text-md-end">Company :</label>
+                            <label for="company_name" class="col-md-4 col-form-label text-md-end">Company</label>
                             <div class="col-md-6">
-                                <select name="company_id" id="company" class="form-select">
-                                    <option value="">-- Select Company --</option>
-                                    @foreach(\App\Models\Company::all() as $company)
-                                        <option value="{{ $company->id }}" 
-                                            {{ old('company_id', session('company_id')) == $company->id ? 'selected' : '' }}>
-                                            {{ $company->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <input type="text" name="company_name" id="company_name"
+                                       class="form-control @error('company_name') is-invalid @enderror"
+                                       value="{{ old('company_name', session('company_name')) }}"
+                                       required>
+                        
+                                @error('company_name')
+                                    <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
+                                @enderror
                             </div>
-                        </div>
+                        </div>                        
 
                         <!-- Email -->
                         <div class="row mb-3">

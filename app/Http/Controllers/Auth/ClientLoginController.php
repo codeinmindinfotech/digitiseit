@@ -19,48 +19,49 @@ class ClientLoginController extends Controller
 
     public function login(Request $request)
     {
+        $request->validate([
+            'email'        => 'required|email',
+            'company_name' => 'required|string'
+        ]);
+
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !$user->hasRole('client')) {
             return back()->withErrors(['email' => 'Client not found.']);
         }
 
-        $request->validate([
-            'email' => 'required|email',
-            'company_id' => 'required|exists:companies,id'
-        ]);
-
-        if ($user->company_id != $request->company_id) {
-            return back()->withErrors(['company_id' => 'Email does not belong to this company.']);
+        // Validate company name
+        if (strcasecmp($user->company->name, $request->company_name) !== 0) {
+            return back()->withErrors(['company_name' => 'Email does not belong to this company.']);
         }
 
-        // Step 1: send code if not submitted
+        // STEP 1 — If no code is entered: send code
         if (!$request->filled('code')) {
-            $code = rand(100000,999999);
+            $code = rand(100000, 999999);
 
             LoginCode::create([
-                'email' => $user->email,
-                'company' => $user->company_id,
-                'code' => $code,
-                'expires_at' => Carbon::now()->addMinutes(5),
+                'email'      => $user->email,
+                'company'    => $user->company->name,
+                'code'       => $code,
+                'expires_at' => now()->addMinutes(5),
             ]);
 
-            Mail::raw("Your login code is: $code", function($msg) use ($user){
+            Mail::raw("Your login code is: $code", function ($msg) use ($user) {
                 $msg->to($user->email)->subject('Your Login Code');
             });
 
             return back()->with([
-                'email' => $user->email,
-                'company_id' => $user->company_id,
-                'code_sent' => true
-            ])->withInput($request->except('password'));
+                'email'        => $user->email,
+                'company_name' => $user->company->name,
+                'code_sent'    => true
+            ]);
         }
 
-        // Step 2: verify code
+        // STEP 2 — Verify code
         $loginCode = LoginCode::where('email', $user->email)
-            ->where('company', $user->company_id)
+            ->where('company', $user->company->name)
             ->where('code', $request->code)
-            ->where('expires_at', '>', Carbon::now())
+            ->where('expires_at', '>', now())
             ->latest()
             ->first();
 
