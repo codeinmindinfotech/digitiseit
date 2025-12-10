@@ -19,7 +19,7 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <table class="table table-bordered">
+    <table id="companyTable" class="table table-bordered table-striped " style="width:100%">
         <thead>
             <tr>
                 <th>CompanyId</th>
@@ -49,4 +49,14 @@
 </div>
 </div>
 </div>
+@endsection
+@section('scripts')
+<script>
+$(document).ready(function() {
+    var table = $('#companyTable').DataTable({
+        responsive: true,
+        order: [[ 0, 'desc' ]] // Sort by uploaded_at descending
+    });
+});
+</script>
 @endsection

@@ -36,7 +36,7 @@
         </form> --}}
 
         {{-- Table to display documents with counts --}}
-        <table id="documentsTable" class="table table-bordered table-striped">
+        <table id="documentsTable" class="table table-bordered table-striped nowrap" style="width:100%">
             <thead>
                 <tr>
                     <th>Id</th>
@@ -79,6 +79,7 @@
 <script>
 $(document).ready(function() {
     var table = $('#documentsTable').DataTable({
+        responsive: true,
         order: [[ 5, 'desc' ]] // Sort by uploaded_at descending
     });
 
