@@ -84,6 +84,7 @@ class DocumentController extends Controller
                             $pdfDir  = $row['documentdirectory'] ?? null;
                             $searchField  = $row['datasearchfield'] ?? null;
                             $rawDate = trim($row['DateUploaded'] ?? '');
+                            $mainParent = $row['mainparent'] ?? null;
 
                             if (is_numeric($rawDate)) {
                                 $uploadedAt = Carbon::createFromDate(1899, 12, 30)->addDays((int)$rawDate)->format('Y-m-d');
@@ -120,6 +121,13 @@ class DocumentController extends Controller
 
                             if (file_exists($sourcePdf)) {
                                 $targetDir = "uploads/{$company?->folder_path}/{$pdfDir}";
+
+                                if($mainParent)
+                                {
+                                    $mainParent= $this->sanitizeFolderName($mainParent);
+                                    $targetDir = "uploads/{$company?->folder_path}/{$mainParent}/{$pdfDir}";
+
+                                }
                                 if (!$disk->exists($targetDir)) {
                                     $disk->makeDirectory($targetDir);
                                 }
@@ -135,6 +143,9 @@ class DocumentController extends Controller
                                     'search_field' => $searchField,
                                     'uploaded_at' => $uploadedAt
                                 ]);
+
+                                // ✅ Delete source file only after successful upload
+                                unlink($sourcePdf);
 
                                 $log['uploaded'][] = ['filename' => $pdfName, 'target' => $targetDir];
                             } else {
@@ -177,6 +188,10 @@ class DocumentController extends Controller
         return view('documents.upload-result', [
             'overallLog' => $overallLog
         ]);
+    }
+    function sanitizeFolderName($name)
+    {
+        return preg_replace('#[\\\\/:*?"<>|]#', '-', $name);
     }
 
     public function clientView(Request $request)
