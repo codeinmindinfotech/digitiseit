@@ -75,7 +75,7 @@ class DocumentController extends Controller
 
                     foreach ($allSheets as $sheet) {
                         foreach ($sheet as $row) {
-
+dd($row);
                             // Skip metadata rows if needed
                             if (isset($row['usersid']) && $row['usersid'] === 'UsersID') continue;
 
