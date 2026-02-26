@@ -15,11 +15,21 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        // $user = User::updateOrCreate(
+        //     ['email' => 'clive.connolly@gmail.com'],
+        //     [
+        //         'name' => 'Clive Connolly',
+        //         'password' => bcrypt('CL!V@23456') , // default password
+        //         'company_id' => null, // important
+        //         'role' => "admin"
+        //     ]
+        // );
+
         $user = User::updateOrCreate(
-            ['email' => 'clive.connolly@gmail.com'],
+            ['email' => 'codeinmindinfotech.dev@gmail.com'],
             [
-                'name' => 'Clive Connolly',
-                'password' => bcrypt('CL!V@23456') , // default password
+                'name' => 'codeinmindinfotech Developer',
+                'password' => bcrypt('123456') , // default password
                 'company_id' => null, // important
                 'role' => "admin"
             ]
