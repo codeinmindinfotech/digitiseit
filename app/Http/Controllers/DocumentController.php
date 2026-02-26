@@ -11,6 +11,7 @@ use App\Imports\DocumentsImport; // optional for Excel import
 use App\Imports\SimpleImport;
 use App\Models\ExcelDocuments;
 use App\Models\User;
+use Illuminate\Support\Facades\File;
 use Carbon\Carbon;
 
 class DocumentController extends Controller
@@ -66,7 +67,7 @@ class DocumentController extends Controller
         foreach ($request->file('files') as $file) {
             $fileName = $file->getClientOriginalName();
             $extension = strtolower($file->getClientOriginalExtension());
-
+            \Log::info('Extension: ' . $extension);
             // If Excel, process rows and copy PDFs based on company folder path
             if (in_array($extension, ['xls', 'xlsx'])) {
                 try {
@@ -160,7 +161,14 @@ class DocumentController extends Controller
                                     'uploaded_at'  => $uploadedAt
                                 ]);
             
-                                unlink($sourcePdf);
+                                if (File::exists($sourcePdf)) {
+                                    try {
+                                        File::delete($sourcePdf);
+                                    } catch (\Exception $e) {
+                                        \Log::warning('Delete failed for: ' . $sourcePdf . ' - ' . $e->getMessage());
+                                    }
+                                }
+                                // unlink($sourcePdf);
             
                                 $log['uploaded'][] = [
                                     'filename' => $pdfName,
