@@ -70,38 +70,31 @@ class DocumentController extends Controller
             // If Excel, process rows and copy PDFs based on company folder path
             if (in_array($extension, ['xls', 'xlsx'])) {
                 try {
-                    $allSheets = Excel::toCollection(new SimpleImport, $file);
+                    $dataSheets = Excel::toCollection(new SimpleImport, $file);
                     $log = ['uploaded' => [], 'missing' => []];
-
-                    foreach ($allSheets as $sheet) {
+            
+                    // ✅ Skip first sheet (definition sheet)
+                    // $dataSheets = $allSheets->slice(1);
+            
+                    foreach ($dataSheets as $sheet) {
                         foreach ($sheet as $row) {
-dd($row);
-                            // Skip metadata rows if needed
-                            if (isset($row['usersid']) && $row['usersid'] === 'UsersID') continue;
-
-                            $userId  = $row['usersid'] ?? null;
-                            $pdfName = $row['documentname'] ?? null;
-                            $pdfDir  = $row['documentdirectory'] ?? null;
-                            $searchField  = $row['datasearchfield'] ?? null;
-                            $rawDate = trim($row['DateUploaded'] ?? '');
-                            $mainParent = $row['mainparent'] ?? null;
-
-                            if (is_numeric($rawDate)) {
-                                $uploadedAt = Carbon::createFromDate(1899, 12, 30)->addDays((int)$rawDate)->format('Y-m-d');
-                            } else {
-                                try {
-                                    $uploadedAt = Carbon::parse($rawDate)->format('Y-m-d');
-                                } catch (\Exception $e) {
-                                    $uploadedAt = now()->format('Y-m-d');
-                                }
+            
+                            // Skip empty rows
+                            if (empty(array_filter($row->toArray()))) {
+                                continue;
                             }
-                            // \Log::error('Excel searchField: ' . $row);
-                            // \Log::error('Excel uploadedAt: ' . $uploadedAt);
-
-                            if (empty($userId) || empty($pdfName) || empty($pdfDir)) continue;
-                            // Now you can process PDFs as before
-                            // $user = is_numeric($userId) ? User::find($userId) : null;
-                            // $companyId = $user->company_id;
+            
+                            $userId       = $row['usersid'] ?? null;
+                            $searchField  = $row['datasearchfield'] ?? null;
+                            $pdfName      = $row['documentname'] ?? null;
+                            $pdfDir       = $row['documentdirectory'] ?? null;
+                            $rawDate      = trim($row['dateuploaded'] ?? '');
+                            $mainParent   = $row['mainparent'] ?? null;
+            
+                            if (empty($userId) || empty($pdfName) || empty($pdfDir)) {
+                                continue;
+                            }
+            
                             $company = is_numeric($userId) ? Company::find($userId) : null;
                             if (!$company) {
                                 // Company not found, log as missing
@@ -113,60 +106,91 @@ dd($row);
                                 ];
                                 continue; // skip processing this row
                             }
-                            $dirName = rtrim($request->directory_name, '/') ?: ($company?->folder_path ?? 'default');
 
-
-                            $sourcePdf = $sourceFolder . '/' . $pdfName;
-
-
-                            if (file_exists($sourcePdf)) {
-                                $targetDir = "uploads/{$company?->folder_path}/{$pdfDir}";
-
-                                if($mainParent)
-                                {
-                                    $mainParent= $this->sanitizeFolderName($mainParent);
-                                    $targetDir = "uploads/{$company?->folder_path}/{$mainParent}/{$pdfDir}";
-
+                            // ✅ Fix Date Handling
+                            if (is_numeric($rawDate)) {
+                                $uploadedAt = \Carbon\Carbon::createFromDate(1899, 12, 30)
+                                    ->addDays((int)$rawDate)
+                                    ->format('Y-m-d');
+                            } else {
+                                try {
+                                    $uploadedAt = \Carbon\Carbon::parse($rawDate)
+                                        ->format('Y-m-d');
+                                } catch (\Exception $e) {
+                                    $uploadedAt = now()->format('Y-m-d');
                                 }
+                            }
+            
+                            // ✅ Find company using UsersID
+                            $company = Company::find($userId);
+            
+                            if (!$company) {
+                                $log['missing'][] = [
+                                    'filename' => $pdfName,
+                                    'reason'   => 'Company not found - ' . $userId
+                                ];
+                                continue;
+                            }
+            
+                            $sourcePdf = $sourceFolder . '/' . $pdfName;
+            
+                            if (file_exists($sourcePdf)) {
+            
+                                $targetDir = "uploads/{$company->folder_path}/{$pdfDir}";
+            
+                                if (!empty($mainParent)) {
+                                    $mainParent = $this->sanitizeFolderName($mainParent);
+                                    $targetDir = "uploads/{$company->folder_path}/{$mainParent}/{$pdfDir}";
+                                }
+            
                                 if (!$disk->exists($targetDir)) {
                                     $disk->makeDirectory($targetDir);
                                 }
-
+            
                                 $pdfPath = $targetDir . '/' . $pdfName;
+            
                                 $disk->put($pdfPath, file_get_contents($sourcePdf));
-
+            
                                 Document::create([
-                                    'company_id' => $company?->id,
-                                    'directory'  => $pdfDir,
-                                    'filename'   => $pdfName,
-                                    'filepath'   => $pdfPath,
+                                    'company_id'   => $company->id,
+                                    'directory'    => $pdfDir,
+                                    'filename'     => $pdfName,
+                                    'filepath'     => $pdfPath,
                                     'search_field' => $searchField,
-                                    'uploaded_at' => $uploadedAt
+                                    'uploaded_at'  => $uploadedAt
                                 ]);
-
-                                // ✅ Delete source file only after successful upload
+            
                                 unlink($sourcePdf);
-
-                                $log['uploaded'][] = ['filename' => $pdfName, 'target' => $targetDir];
+            
+                                $log['uploaded'][] = [
+                                    'filename' => $pdfName,
+                                    'target'   => $targetDir
+                                ];
+            
                             } else {
-                                $log['missing'][] = ['filename' => $pdfName, 'directory' => $pdfDir, 'reason' => 'File not Found - '.$sourcePdf];
+                                $log['missing'][] = [
+                                    'filename' => $pdfName,
+                                    'reason'   => 'File Not Found - ' . $sourcePdf
+                                ];
                             }
                         }
                     }
-                    // Save log per Excel file
-                    // dd("111");
-                    $logDir = storage_path('logs'); // points to storage/logs
+            
+                    // Save log
+                    $logDir = storage_path('logs');
                     if (!file_exists($logDir)) {
-                        mkdir($logDir, 0777, true); // create folder if it doesn't exist
+                        mkdir($logDir, 0777, true);
                     }
-
+            
                     $logFile = $logDir . '/upload_log_' . pathinfo($fileName, PATHINFO_FILENAME) . '.json';
                     file_put_contents($logFile, json_encode($log, JSON_PRETTY_PRINT));
                     $overallLog[$fileName] = $log;
+            
                 } catch (\Exception $e) {
                     \Log::error('Excel import failed: ' . $e->getMessage());
                 }
-            } else {
+            }
+            else {
                 // Non-Excel files (PDFs, etc.) — use old code
                 $dirPath = "uploads/{$dirName}";
                 if (!$disk->exists($dirPath)) {
